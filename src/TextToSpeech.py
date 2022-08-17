@@ -31,19 +31,51 @@ class TextToSpeech:
         except FileExistsError:
             pass
 
-    
+
+
+
     def create_tts(self, posts):
         '''Takes the list of posts and creates text to speech audio for each one
         places them in the audio_path directory...
         the 0th index of posts is the title so we explicitly name it title.mp3'''
 
+        def export_audio(text, fp):
+            text_grp = []
+            word_list = text.split(" ")
+            par = ""
+            for i, wd in enumerate(word_list):
+                par_len = len(par)
+                wd_len = len(wd)
+                if par_len + wd_len + 1 < 100:
+                    par += " {}".format(wd)
+                    if i+1 == len(word_list):
+                        text_grp.append(par)
+                else:
+                    text_grp.append(par)
+                    par = ""
+
+            for sub_text in text_grp:
+                print("length = ", len(sub_text))
+                # print(sub_text)
+                try:
+                    gTTS(text=sub_text, lang='en').write_to_fp(fp)
+                except:
+                    pass
+        
+        title_file = f'{self.audio_path}title.mp3'
+        if os.path.exists(title_file):
+            os.remove(title_file)
         # Creating the title tts first
-        with open(f'{self.audio_path}title.mp3', 'wb') as f:
-            gTTS(text=posts[0], lang='en').write_to_fp(f)
+        with open(title_file, 'ab') as f:
+            export_audio(posts[0], f)
+            # gTTS(text=posts[0], lang='en').write_to_fp(f)
 
         # Creating tts for the replies next
         for i, reply in enumerate(posts[1:]):
             # Saving tts of replies as: reply0.mp3, reply1.mp3, ... , replyn.mp3
-            with open(f'{self.audio_path}reply{str(i)}.mp3', 'wb') as f:
+            reply_file = f'{self.audio_path}reply{str(i)}.mp3'
+            if os.path.exists(reply_file):
+                os.remove(reply_file)
+            with open(reply_file, 'wb') as f:
                 gTTS(text=reply, lang='en').write_to_fp(f)
 
