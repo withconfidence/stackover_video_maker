@@ -12,6 +12,8 @@ class VideoEditor:
         self.image_path = '../images/'
         self.audio_path = '../audio/'
         self.save_path = '../edited_videos/'
+        self.intro_clip = '../videos/intro.mp4'
+        self.outro_clip = '../videos/outro.mp4'
 
         self.create_dir() # Creates the edited videos dir if it doesnt exist
 
@@ -56,19 +58,29 @@ class VideoEditor:
 
             clips.append(tmp_mp4)
             
-
+        # clips.append(self.outro_clip)
         # Combina all clips, and combine into master video
-        final_vid = concatenate(clips, method='compose')
+        merged_clip_name = f'{self.save_path}merged_clips.mp4'
+        final_vid_name = f'{self.save_path}{self.video_name}.mp4'
 
-        final_vid.write_videofile(f'{self.save_path}{self.video_name}.mp4',
+        merged_vid = concatenate(clips, method='compose')
+
+        merged_vid.write_videofile(merged_clip_name,
           fps=10,
           codec='libx264',
           audio_codec='aac',
           temp_audiofile='temp-audio.m4a',
           remove_temp=True
         )
+        video_list_file = "{}video_list.txt".format(self.save_path)
 
-        
+        with open(video_list_file, "w") as f:
+            f.write("file {}\n".format(self.intro_clip))
+            f.write("file {}\n".format(merged_clip_name))
+            f.write("file {}\n".format(self.outro_clip))
 
+        ffmpeg_cmd = 'ffmpeg -f concat -safe 0 -i {} -y {}'.format(video_list_file, final_vid_name)
+        # cmd = 'ffmpeg -i \'{}\' -i \'{}\' -i \'{}\' -codec aac -filter_complex \"[0:v:0] [0:a:0] [1:v:0] [1:a:0] [2:v:0] [2:a:0] concat=n=3:v=1:a=1:safe=0 [v] [a]\" -map "[v]" -map "[a]" -y {}'.format(self.intro_clip, merged_clip_name, self.outro_clip, merged_clip_name)
+        os.system(ffmpeg_cmd)
+        os.remove(merged_clip_name)
 
-    
