@@ -6,8 +6,9 @@ from bs4 import BeautifulSoup
 def href(soup):
     # get all href links from one page 
     href=[]
-    for i in soup.find_all("a",class_="question-hyperlink",href=True):
-        href.append(i['href'])
+    for i in soup.find_all("a",class_="s-link",href=True):
+        if i['href'].startswith("/questions/"):
+            href.append(i['href'])
     return href
 
 
@@ -31,10 +32,10 @@ def add_prefix(herfs_list):
     prefix='https://stackoverflow.com'
     for h in herfs_list:
         if 'https' not in h:
-            m=prefix+h+"answertab=votes#tab-top"
+            m=prefix+h+"answertab=Newest#tab-top"
             new_href.append(m)
         else:
-            new_href.append(h+"answertab=votes#tab-top")
+            new_href.append(h+"answertab=Newest#tab-top")
     return new_href
 
 
@@ -85,7 +86,8 @@ def questions_answers(keyword, num_question):
         hrefs.append(href(soup))
     herfs_list=clean_empty_hrefs(hrefs)
     new_hrefs_list=add_prefix(herfs_list)
-
+    for url in new_hrefs_list:
+        print("url= ", url)
     # print(f"{len(new_hrefs_list)=}")
 
     # new_hrefs_list = new_hrefs_list[:num_question]
