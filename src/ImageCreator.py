@@ -82,6 +82,8 @@ class ImageCreator:
         ex: split_string('hello world hello world', 2)
         => ['hello world', 'hello world']'''
         words = text.split() #splits words into list: eg: 'hello world' -> ['hello', 'world']
+        new_words = []
+
         lines = []
         line = ''
         added = False
@@ -91,9 +93,10 @@ class ImageCreator:
             added = False
             line += word + ' '
             wc += 1
-            if (wc % n == 0):
+            if wc % n == 0 or len(line) > 80:
                 lines.append(line)
                 line = ''
+                wc = 0
                 added = True
 
         if (added is False):

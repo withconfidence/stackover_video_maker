@@ -4,6 +4,7 @@
 # This will import the Reddit Scraping Class and the Video Editing Class
 
 import argparse # Used to handle command line arguments
+import pandas as pd
 
 from RedditScrape import RedditScrape # Importing reddit scraping class to acquire posts and authors 
 
@@ -20,8 +21,7 @@ from VideoEdit import VideoEditor # Edits all the tts mp3 and Images into a mp4 
 def main() -> int: 
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('keyword', type=str, help='keyword to search')
-    parser.add_argument('entries', type=int, help='ents number to search')
+    parser.add_argument('file', type=str, help='target csv file')
     args = parser.parse_args()
 
     ''' input_metadata holds the meta data from each entry in the input file
@@ -33,19 +33,18 @@ def main() -> int:
     # Open the file from argument and build the list of meta data for each link to build videos 
     try:
         # keyword, num of entry
-        keyword = args.keyword
-        ent_num = args.entries
+        csv_file = args.file
 
-        stack_data = questions_answers(keyword, ent_num)
+        stack_data = pd.read_csv(csv_file)
 
     except:
         print('Failed to scraping from stackover')
         return 1
 
-    
+    num_data = stack_data.shape[0]
 
     # Loop through each video meta object and create videos 
-    for index, video_meta in enumerate(stack_data): 
+    for index in range(num_data): 
         # print(video_meta)
 
         # reddit_scraper = RedditScrape(video_meta['url'], video_meta['n_entries'])
@@ -54,44 +53,61 @@ def main() -> int:
         # # index 0 of both are associated with the title, the rest are replies to the thread
         # posts, authors = reddit_scraper.scrape_post()
 
-        url = video_meta["url"]
-        asked_user = video_meta["asked_user"]
-        question = video_meta["question"]
-        answered_user = [video_meta["answered_user"]]
-        answer = [video_meta["answer"]]
-        posts = [question] + answer
-        authors = [asked_user] + answered_user
+        url = stack_data.url[index]
+        asked_user = stack_data.asked_user[index]
+        question = stack_data.question[index]
+        answered_user = stack_data.answered_user[index]
+        answer = stack_data.answer[index]
 
+        posts = [question, answer]
+        authors = [asked_user, answered_user]
 
+        new_split_posts = []
+        new_split_authors = []
 
-        # for i, post in enumerate(posts):
-        print('question: ', question)
-        print('answer: ', answer)
-
+        for text, name in zip(posts, authors):
+            if len(text) < 500:
+                new_split_posts.append(text)
+                new_split_authors.append(name)
+            else:
+                text_grp = []
+                word_list = text.split(" ")
+                par = ""
+                for i, wd in enumerate(word_list):
+                    par_len = len(par)
+                    wd_len = len(wd)
+                    if par_len + wd_len + 1 < 500:
+                        par += " {}".format(wd)
+                        if i+1 == len(word_list):
+                            text_grp.append(par)
+                    else:
+                        text_grp.append(par)
+                        par = ""
+                num_split = len(text_grp)
+                new_split_posts += text_grp
+                new_split_authors += [name for _ in range(num_split)]
 
         # Text to speech 
         tts = TextToSpeech()   # Creating tts class
-        tts.create_tts(posts)  # Creating all tts mp3 files for video 
+        tts.create_tts(new_split_posts)  # Creating all tts mp3 files for video 
 
         # Image Creation
         # Creating image for title 
-        ImageCreator.create_image_for(question, asked_user, 'title')
+        ImageCreator.create_image_for(new_split_posts[0], new_split_authors[0], 'title')
 
         # Creating image post for the replies: reply0.jpg, reply1.jpg, ...
-        for i in range(1, len(posts)):
-            ImageCreator.create_image_for(posts[i],authors[i], f'reply{str(i-1)}')
+        for i in range(1, len(new_split_posts)):
+            ImageCreator.create_image_for(new_split_posts[i],new_split_authors[i], f'reply{str(i-1)}')
 
 
         # Creating a Video Editing object
         # Passing n_entries + 1, for # of images, since we have title + n replies
 
-        Editor = VideoEditor(int(len(posts))-1, keyword+"_"+str(index+1))
+        Editor = VideoEditor(int(len(new_split_posts))-1, "keyword"+"_"+str(index+1))
         Editor.create_movie()
         print('movie created')
 
-        
     return 0
-
 
 
 if __name__ == '__main__':

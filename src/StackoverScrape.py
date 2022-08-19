@@ -1,3 +1,4 @@
+from turtle import title
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -51,8 +52,9 @@ def single_page_question_answer(url):
     question = ""
     answer = []
     asked_username = ""
-    answered_username = []
+    answered_username = ""
     
+    q_title = single_page_scraper(url).find_all("a", class_="question-hyperlink")[0].get_text()
     user_element = single_page_scraper(url).find_all("div", class_="user-details",itemprop="author")
     user_names = [a.find("a").get_text() for a in user_element]
 
@@ -62,12 +64,13 @@ def single_page_question_answer(url):
             question = "\n".join(p_list)
             asked_username = user_names[i]
         elif i > 0:
-            answer.append("\n".join(p_list))
-            answered_username.append(user_names[i])
+            answer = "\n".join(p_list)
+            answered_username = user_names[i]
+            break
         if i == 2:
             break
 
-    return question,asked_username, answer, answered_username
+    return question,asked_username, answer, answered_username, q_title
 
 import itertools
 def questions_answers(keyword, num_question):
@@ -86,8 +89,8 @@ def questions_answers(keyword, num_question):
         hrefs.append(href(soup))
     herfs_list=clean_empty_hrefs(hrefs)
     new_hrefs_list=add_prefix(herfs_list)
-    for url in new_hrefs_list:
-        print("url= ", url)
+    # for url in new_hrefs_list:
+    #     print("url= ", url)
     # print(f"{len(new_hrefs_list)=}")
 
     # new_hrefs_list = new_hrefs_list[:num_question]
@@ -99,15 +102,20 @@ def questions_answers(keyword, num_question):
     asked_users = []
     answer_users = []
     urls = []
+    titles = []
+    
     for url in new_hrefs_list:
         try:
-            q, q_u, a, a_u=single_page_question_answer(url)
+            q, q_u, a, a_u, q_title=single_page_question_answer(url)
+            print(q_title)
 
-            quesitons.append(q)
-            answers.append(a)
-            asked_users.append(q_u)
-            answer_users.append(a_u)
+            quesitons.append(q.strip())
+            answers.append(a.strip())
+            asked_users.append(q_u.strip())
+            answer_users.append(a_u.strip())
             urls.append(url)
+            titles.append(q_title)
+            print("question num:", len(quesitons), num_question)
             if len(quesitons) >= num_question:
                 break
         except Exception as err:
@@ -120,8 +128,8 @@ def questions_answers(keyword, num_question):
     new_answer_users = []
     for i in range(len(answers)):
         try:
-            ans = answers[i][0]
-            user = answer_users[i][0]
+            ans = answers[i]
+            user = answer_users[i]
             new_answers.append(ans)
             new_answer_users.append(user)
         except:
@@ -129,11 +137,25 @@ def questions_answers(keyword, num_question):
             new_answer_users.append(None)
 
     print("All most done!")
-    assert(len(urls) == len(quesitons) == len(asked_users) == len(new_answers) == len(new_answer_users))
+    assert(len(urls) == len(quesitons) == len(asked_users) == len(new_answers) == len(new_answer_users) == len(titles))
+
+    df = pd.DataFrame(
+        {
+            "url": urls,
+            "title": titles,
+            "asked_user": asked_users,
+            "question": quesitons,
+            "answered_user": new_answer_users,
+            "answer": new_answers
+        }
+    )
+
+    df.to_csv("list.csv", mode="w")
 
     return_value = [
         {
             "url": urls[j],
+            "title": titles[j].strip(),
             "asked_user": asked_users[j].strip(),
             "question": quesitons[j].strip(),
             "answered_user": new_answer_users[j].strip(),
@@ -147,6 +169,6 @@ def questions_answers(keyword, num_question):
 
 if __name__ == "__main__":
     key = "python"
-    entries = 5
+    entries = 3
     result = questions_answers(key, entries)
 

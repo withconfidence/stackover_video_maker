@@ -79,8 +79,10 @@ class VideoEditor:
             f.write("file {}\n".format(merged_clip_name))
             f.write("file {}\n".format(self.outro_clip))
 
-        ffmpeg_cmd = 'ffmpeg -f concat -safe 0 -i {} -y {}'.format(video_list_file, final_vid_name)
+        ffmpeg_cmd = 'ffmpeg -f concat -safe 0 -i "{}" -i "{}" -i "{}" -filter_complex "[0:v:0] [0:a:0] [1:v:0] [1:a:0] [2:v:0] [2:a:0] concat=unsafe=1:n=3:v=1:a=1 [v] [a]" -map "[v]" -map "[a]" -c copy {}'.format(self.intro_clip, merged_clip_name, self.outro_clip, final_vid_name)
         # cmd = 'ffmpeg -i \'{}\' -i \'{}\' -i \'{}\' -codec aac -filter_complex \"[0:v:0] [0:a:0] [1:v:0] [1:a:0] [2:v:0] [2:a:0] concat=n=3:v=1:a=1:safe=0 [v] [a]\" -map "[v]" -map "[a]" -y {}'.format(self.intro_clip, merged_clip_name, self.outro_clip, merged_clip_name)
         os.system(ffmpeg_cmd)
         os.remove(merged_clip_name)
 
+# ffmpeg -f concat -safe 0 -i video_list.txt -filter_complex "[0:v:0] [0:a:0] [1:v:0] [1:a:0] [2:v:0] [2:a:0] concat=unsafe=1:n=3:v=1:a=1 [v] [a]" -map "[v]" -map "[a]" -c copy demo_1.mp4
+# ffmpeg -f concat -safe 0 -i "../videos/intro.mp4" -i "../edited_videos/new.mp4" -i "../videos/outro.mp4" -filter_complex "[0:v:0] [0:a:0] [1:v:0] [1:a:0] [2:v:0] [2:a:0] concat=unsafe=1:n=3:v=1:a=1 [v] [a]" -map "[v]" -map "[a]" -c copy demo_1.mp4
