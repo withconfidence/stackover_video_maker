@@ -1,25 +1,24 @@
 # stack_video_maker
-This project will find popular stack threads and convert them into a text-to-speech videos. 
 
-1. Find popular stack threads worthy of being converted to threads using reddit api and some type of web scraping.
+## how to install 
+After activate venv(if needed), install dependencies.
+`pip install -r requirements.txt`
 
-2. Convert top threads into static images, convert top thread title's to TTS using text-to-speech api. 
-
-3. Convert answer of threads into static image, read outloud with text-to-speech
-  - repeat with all relevant & interesting answers to the question 
-
-4. String Question image with text-to-speech & string Answers image with text-to-speech into a video using video editing api. 
-
-
+After then, please install `ffmpeg`.
 
 # Usage
 
 ## For Stackoverflow
-After installation of env, run the below command
+
+First, make the list csv file.
+
+`python StackoverScrape.py keyword 3`
+
+After then, run the below command
 
 ```
 cd src
-python run_stack.py keyword number
+python run_stack.py list.csv
 ```
     usage: run_stack.py [-h] keyword entries
 
