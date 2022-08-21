@@ -1,0 +1,220 @@
+,url,keyword,title,asked_user,question,answered_user,answer
+0,https://stackoverflow.com/questions/231767/what-does-the-yield-keyword-doanswertab=Newest#tab-top,python,"What does the ""yield"" keyword do?",Alex. S.,"What is the use of the yield keyword in Python? What does it do?
+For example, I'm trying to understand this code1:
+And this is the caller:
+What happens when the method _get_child_candidates is called?
+Is a list returned? A single element? Is it called again? When will subsequent calls stop?",e-satis,"To understand what yield does, you must understand what generators are. And before you can understand generators, you must understand iterables.
+When you create a list, you can read its items one by one. Reading its items one by one is called iteration:
+mylist is an iterable. When you use a list comprehension, you create a list, and so an iterable:
+Everything you can use ""for... in..."" on is an iterable; lists, strings, files...
+These iterables are handy because you can read them as much as you wish, but you store all the values in memory and this is not always what you want when you have a lot of values.
+Generators are iterators, a kind of iterable you can only iterate over once. Generators do not store all the values in memory, they generate the values on the fly:
+It is just the same except you used () instead of []. BUT, you cannot perform for i in mygenerator a second time since generators can only be used once: they calculate 0, then forget about it and calculate 1, and end calculating 4, one by one.
+yield is a keyword that is used like return, except the function will return a generator.
+Here it's a useless example, but it's handy when you know your function will return a huge set of values that you will only need to read once.
+To master yield, you must understand that when you call the function, the code you have written in the function body does not run. The function only returns the generator object, this is a bit tricky.
+Then, your code will continue from where it left off each time for uses the generator.
+Now the hard part:
+The first time the for calls the generator object created from your function, it will run the code in your function from the beginning until it hits yield, then it'll return the first value of the loop. Then, each subsequent call will run another iteration of the loop you have written in the function and return the next value. This will continue until the generator is considered empty, which happens when the function runs without hitting yield. That can be because the loop has come to an end, or because you no longer satisfy an ""if/else"".
+Generator:
+Caller:
+This code contains several smart parts:
+The loop iterates on a list, but the list expands while the loop is being iterated. It's a concise way to go through all these nested data even if it's a bit dangerous since you can end up with an infinite loop. In this case, candidates.extend(node._get_child_candidates(distance, min_dist, max_dist)) exhaust all the values of the generator, but while keeps creating new generator objects which will produce different values from the previous ones since it's not applied on the same node.
+The extend() method is a list object method that expects an iterable and adds its values to the list.
+Usually we pass a list to it:
+But in your code, it gets a generator, which is good because:
+And it works because Python does not care if the argument of a method is a list or not. Python expects iterables so it will work with strings, lists, tuples, and generators! This is called duck typing and is one of the reasons why Python is so cool. But this is another story, for another question...
+You can stop here, or read a little bit to see an advanced use of a generator:
+Note: For Python 3, useprint(corner_street_atm.__next__()) or print(next(corner_street_atm))
+It can be useful for various things like controlling access to a resource.
+The itertools module contains special functions to manipulate iterables. Ever wish to duplicate a generator?
+Chain two generators? Group values in a nested list with a one-liner? Map / Zip without creating another list?
+Then just import itertools.
+An example? Let's see the possible orders of arrival for a four-horse race:
+Iteration is a process implying iterables (implementing the __iter__() method) and iterators (implementing the __next__() method).
+Iterables are any objects you can get an iterator from. Iterators are objects that let you iterate on iterables.
+There is more about it in this article about how for loops work."
+1,https://stackoverflow.com/questions/419163/what-does-if-name-main-doanswertab=Newest#tab-top,python,"What does if __name__ == ""__main__"": do?",Devoted,"What does this do, and why should one include the if statement?",Mr Fooz,"It's boilerplate code that protects users from accidentally invoking the script when they didn't intend to. Here are some common problems when the guard is omitted from a script:
+If you import the guardless script in another script (e.g. import my_script_without_a_name_eq_main_guard), then the latter script will trigger the former to run at import time and using the second script's command line arguments. This is almost always a mistake.
+If you have a custom class in the guardless script and save it to a pickle file, then unpickling it in another script will trigger an import of the guardless script, with the same problems outlined in the previous bullet.
+To better understand why and how this matters, we need to take a step back to understand how Python initializes scripts and how this interacts with its module import mechanism.
+Whenever the Python interpreter reads a source file, it does two things:
+it sets a few special variables like __name__, and then
+it executes all of the code found in the file.
+Let's see how this works and how it relates to your question about the __name__ checks we always see in Python scripts.
+Let's use a slightly different code sample to explore how imports and scripts work.  Suppose the following is in a file called foo.py.
+When the Python interpreter reads a source file, it first defines a few special variables. In this case, we care about the __name__ variable.
+When Your Module Is the Main Program
+If you are running your module (the source file) as the main program, e.g.
+the interpreter will assign the hard-coded string ""__main__"" to the __name__ variable, i.e.
+When Your Module Is Imported By Another
+On the other hand, suppose some other module is the main program and it imports your module. This means there's a statement like this in the main program, or in some other module the main program imports:
+The interpreter will search for your foo.py file (along with searching for a few other variants), and prior to executing that module, it will assign the name ""foo"" from the import statement to the __name__ variable, i.e.
+After the special variables are set up, the interpreter executes all the code in the module, one statement at a time. You may want to open another window on the side with the code sample so you can follow along with this explanation.
+Always
+It prints the string ""before import"" (without quotes).
+It loads the math module and assigns it to a variable called math. This is equivalent to replacing import math with the following (note that __import__ is a low-level function in Python that takes a string and triggers the actual import):
+It prints the string ""before function_a"".
+It executes the def block, creating a function object, then assigning that function object to a variable called function_a.
+It prints the string ""before function_b"".
+It executes the second def block, creating another function object, then assigning it to a variable called function_b.
+It prints the string ""before __name__ guard"".
+Only When Your Module Is the Main Program
+Only When Your Module Is Imported by Another
+Always
+Summary
+In summary, here's what'd be printed in the two cases:
+You might naturally wonder why anybody would want this.  Well, sometimes you want to write a .py file that can be both used by other programs and/or modules as a module, and can also be run as the main program itself.  Examples:
+Your module is a library, but you want to have a script mode where it runs some unit tests or a demo.
+Your module is only used as a main program, but it has some unit tests, and the testing framework works by importing .py files like your script and running special test functions. You don't want it to try running the script just because it's importing the module.
+Your module is mostly used as a main program, but it also provides a programmer-friendly API for advanced users.
+Beyond those examples, it's elegant that running a script in Python is just setting up a few magic variables and importing the script. ""Running"" the script is a side effect of importing the script's module.
+Question: Can I have multiple __name__ checking blocks?  Answer: it's strange to do so, but the language won't stop you.
+Suppose the following is in foo2.py.  What happens if you say python foo2.py on the command-line? Why?"
+2,https://stackoverflow.com/questions/100003/what-are-metaclasses-in-pythonanswertab=Newest#tab-top,python,What are metaclasses in Python?,e-satis,What are metaclasses? What are they used for?,Thomas Wouters,"Before understanding metaclasses, you need to master classes in Python. And Python has a very peculiar idea of what classes are, borrowed from the Smalltalk language.
+In most languages, classes are just pieces of code that describe how to produce an object. That's kinda true in Python too:
+But classes are more than that in Python. Classes are objects too.
+Yes, objects.
+As soon as you use the keyword class, Python executes it and creates
+an object. The instruction
+creates in memory an object with the name ObjectCreator.
+This object (the class) is itself capable of creating objects (the instances),
+and this is why it's a class.
+But still, it's an object, and therefore:
+e.g.:
+Since classes are objects, you can create them on the fly, like any object.
+First, you can create a class in a function using class:
+But it's not so dynamic, since you still have to write the whole class yourself.
+Since classes are objects, they must be generated by something.
+When you use the class keyword, Python creates this object automatically. But as
+with most things in Python, it gives you a way to do it manually.
+Remember the function type? The good old function that lets you know what
+type an object is:
+Well, type has a completely different ability, it can also create classes on the fly. type can take the description of a class as parameters,
+and return a class.
+(I  know, it's silly that the same function can have two completely different uses according to the parameters you pass to it. It's an issue due to backward
+compatibility in Python)
+type works this way:
+Where:
+e.g.:
+can be created manually this way:
+You'll notice that we use MyShinyClass as the name of the class
+and as the variable to hold the class reference. They can be different,
+but there is no reason to complicate things.
+type accepts a dictionary to define the attributes of the class. So:
+Can be translated to:
+And used as a normal class:
+And of course, you can inherit from it, so:
+would be:
+Eventually, you'll want to add methods to your class. Just define a function
+with the proper signature and assign it as an attribute.
+And you can add even more methods after you dynamically create the class, just like adding methods to a normally created class object.
+You see where we are going: in Python, classes are objects, and you can create a class on the fly, dynamically.
+This is what Python does when you use the keyword class, and it does so by using a metaclass.
+Metaclasses are the 'stuff' that creates classes.
+You define classes in order to create objects, right?
+But we learned that Python classes are objects.
+Well, metaclasses are what create these objects. They are the classes' classes,
+you can picture them this way:
+You've seen that type lets you do something like this:
+It's because the function type is in fact a metaclass. type is the
+metaclass Python uses to create all classes behind the scenes.
+Now you wonder ""why the heck is it written in lowercase, and not Type?""
+Well, I guess it's a matter of consistency with str, the class that creates
+strings objects, and int the class that creates integer objects. type is
+just the class that creates class objects.
+You see that by checking the __class__ attribute.
+Everything, and I mean everything, is an object in Python. That includes integers,
+strings, functions and classes. All of them are objects. And all of them have
+been created from a class:
+Now, what is the __class__ of any __class__ ?
+So, a metaclass is just the stuff that creates class objects.
+You can call it a 'class factory' if you wish.
+type is the built-in metaclass Python uses, but of course, you can create your
+own metaclass.
+In Python 2, you can add a __metaclass__ attribute when you write a class (see next section for the Python 3 syntax):
+If you do so, Python will use the metaclass to create the class Foo.
+Careful, it's tricky.
+You write class Foo(object) first, but the class object Foo is not created
+in memory yet.
+Python will look for __metaclass__ in the class definition. If it finds it,
+it will use it to create the object class Foo. If it doesn't, it will use
+type to create the class.
+Read that several times.
+When you do:
+Python does the following:
+Is there a __metaclass__ attribute in Foo?
+If yes, create in-memory a class object (I said a class object, stay with me here.), with the name Foo by using what is in __metaclass__.
+If Python can't find __metaclass__, it will look for a __metaclass__ at the MODULE level, and try to do the same (but only for classes that don't inherit anything, basically old-style classes).
+Then if it can't find any __metaclass__ at all, it will use the Bar's (the first parent) own metaclass (which might be the default type.) to create the class object.
+Be careful here that the __metaclass__ attribute will not be inherited, the metaclass of the parent (Bar.__class__) will be. If Bar used a __metaclass__ attribute that created Bar with type() (and not type.__new__()), the subclasses will not inherit that behavior.
+Now the big question is, what can you put in __metaclass__?
+The answer is something that can create a class.
+And what can create a class? type, or anything that subclasses or uses it.
+The syntax to set the metaclass has been changed in Python 3:
+i.e. the __metaclass__ attribute is no longer used, in favor of a keyword argument in the list of base classes.
+The behavior of metaclasses however stays largely the same.
+One thing added to metaclasses in Python 3 is that you can also pass attributes as keyword-arguments into a metaclass, like so:
+Read the section below for how Python handles this.
+The main purpose of a metaclass is to change the class automatically,
+when it's created.
+You usually do this for APIs, where you want to create classes matching the
+current context.
+Imagine a stupid example, where you decide that all classes in your module
+should have their attributes written in uppercase. There are several ways to
+do this, but one way is to set __metaclass__ at the module level.
+This way, all classes of this module will be created using this metaclass,
+and we just have to tell the metaclass to turn all attributes to uppercase.
+Luckily, __metaclass__ can actually be any callable, it doesn't need to be a
+formal class (I know, something with 'class' in its name doesn't need to be
+a class, go figure... but it's helpful).
+So we will start with a simple example, by using a function.
+Let's check:
+Now, let's do exactly the same, but using a real class for a metaclass:
+Let's rewrite the above, but with shorter and more realistic variable names now that we know what they mean:
+You may have noticed the extra argument cls. There is
+nothing special about it: __new__ always receives the class it's defined in, as the first parameter. Just like you have self for ordinary methods which receive the instance as the first parameter, or the defining class for class methods.
+But this is not proper OOP. We are calling type directly and we aren't overriding or calling the parent's __new__. Let's do that instead:
+We can make it even cleaner by using super, which will ease inheritance (because yes, you can have metaclasses, inheriting from metaclasses, inheriting from type):
+Oh, and in Python 3 if you do this call with keyword arguments, like this:
+It translates to this in the metaclass to use it:
+That's it. There is really nothing more about metaclasses.
+The reason behind the complexity of the code using metaclasses is not because
+of metaclasses, it's because you usually use metaclasses to do twisted stuff
+relying on introspection, manipulating inheritance, vars such as __dict__, etc.
+Indeed, metaclasses are especially useful to do black magic, and therefore
+complicated stuff. But by themselves, they are simple:
+Since __metaclass__ can accept any callable, why would you use a class
+since it's obviously more complicated?
+There are several reasons to do so:
+Now the big question. Why would you use some obscure error-prone feature?
+Well, usually you don't:
+Metaclasses are deeper magic that
+99% of users should never worry about it.
+If you wonder whether you need them,
+you don't (the people who actually
+need them know with certainty that
+they need them, and don't need an
+explanation about why).
+Python Guru Tim Peters
+The main use case for a metaclass is creating an API. A typical example of this is the Django ORM. It allows you to define something like this:
+But if you do this:
+It won't return an IntegerField object. It will return an int, and can even take it directly from the database.
+This is possible because models.Model defines __metaclass__ and
+it uses some magic that will turn the Person you just defined with simple statements
+into a complex hook to a database field.
+Django makes something complex look simple by exposing a simple API
+and using metaclasses, recreating code from this API to do the real job
+behind the scenes.
+First, you know that classes are objects that can create instances.
+Well, in fact, classes are themselves instances. Of metaclasses.
+Everything is an object in Python, and they are all either instance of classes
+or instances of metaclasses.
+Except for type.
+type is actually its own metaclass. This is not something you could
+reproduce in pure Python, and is done by cheating a little bit at the implementation
+level.
+Secondly, metaclasses are complicated. You may not want to use them for
+very simple class alterations. You can change classes by using two different techniques:
+99% of the time you need class alteration, you are better off using these.
+But 98% of the time, you don't need class alteration at all."
