@@ -86,23 +86,18 @@ class ImageCreator:
 
         lines = []
         line = ''
-        added = False
 
-        wc = 0 # Word count
-        for word in words:
-            added = False
-            line += word + ' '
-            wc += 1
-            if wc % n == 0 or len(line) > 80:
-                lines.append(line)
-                line = ''
-                wc = 0
-                added = True
+        for i, word in enumerate(words):
+            line_len = len(line)
+            word_len = len(word)
+            if line_len + word_len + 1 > 80:
+                lines.append(line.strip())
+                line = word
+            else:
+                line += " " + word
 
-        if (added is False):
-            lines.append(line)
+            if i+1 == len(words):
+                lines.append(line.strip())
 
         return lines
-
-
 

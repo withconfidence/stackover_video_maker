@@ -48,14 +48,15 @@ class TextToSpeech:
                 wd_len = len(wd)
                 if par_len + wd_len + 1 < 100:
                     par += " {}".format(wd)
-                    if i+1 == len(word_list):
-                        text_grp.append(par)
+
+
                 else:
                     text_grp.append(par)
-                    par = ""
-
+                    par = wd
+                if i+1 == len(word_list):
+                    text_grp.append(par)
             for sub_text in text_grp:
-                print("length = ", len(sub_text))
+                # print("length = ", len(sub_text))
                 # print(sub_text)
                 try:
                     gTTS(text=sub_text, lang='en').write_to_fp(fp)
@@ -63,6 +64,7 @@ class TextToSpeech:
                     pass
         
         title_file = f'{self.audio_path}title.mp3'
+        print("writing title audio file...")
         if os.path.exists(title_file):
             os.remove(title_file)
         # Creating the title tts first
@@ -71,11 +73,14 @@ class TextToSpeech:
             # gTTS(text=posts[0], lang='en').write_to_fp(f)
 
         # Creating tts for the replies next
+        print("writing reply audio files...")
+
         for i, reply in enumerate(posts[1:]):
             # Saving tts of replies as: reply0.mp3, reply1.mp3, ... , replyn.mp3
             reply_file = f'{self.audio_path}reply{str(i)}.mp3'
             if os.path.exists(reply_file):
                 os.remove(reply_file)
-            with open(reply_file, 'wb') as f:
-                gTTS(text=reply, lang='en').write_to_fp(f)
+            with open(reply_file, 'ab') as f:
+                export_audio(reply, f)
+                # gTTS(text=reply, lang='en').write_to_fp(f)
 

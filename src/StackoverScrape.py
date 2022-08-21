@@ -126,12 +126,14 @@ def questions_answers(keyword, num_question):
     
     new_answers=[]
     new_answer_users = []
+    key_list = []
     for i in range(len(answers)):
         try:
             ans = answers[i]
             user = answer_users[i]
             new_answers.append(ans)
             new_answer_users.append(user)
+            key_list.append(keyword)
         except:
             new_answers.append(None)
             new_answer_users.append(None)
@@ -142,6 +144,7 @@ def questions_answers(keyword, num_question):
     df = pd.DataFrame(
         {
             "url": urls,
+            "keyword": key_list,
             "title": titles,
             "asked_user": asked_users,
             "question": quesitons,
@@ -150,20 +153,9 @@ def questions_answers(keyword, num_question):
         }
     )
 
-    df.to_csv("list.csv", mode="w")
+    df.to_csv("list.csv", mode="w", index=True)
 
-    return_value = [
-        {
-            "url": urls[j],
-            "title": titles[j].strip(),
-            "asked_user": asked_users[j].strip(),
-            "question": quesitons[j].strip(),
-            "answered_user": new_answer_users[j].strip(),
-            "answer": new_answers[j].strip()
-        } for j in range(len(urls))
-    ]
-
-    return return_value
+    print("csv file successfully created...")
 
 
 

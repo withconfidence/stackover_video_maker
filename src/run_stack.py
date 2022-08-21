@@ -58,6 +58,7 @@ def main() -> int:
         question = stack_data.question[index]
         answered_user = stack_data.answered_user[index]
         answer = stack_data.answer[index]
+        key = stack_data.keyword[index]
 
         posts = [question, answer]
         authors = [asked_user, answered_user]
@@ -103,7 +104,7 @@ def main() -> int:
         # Creating a Video Editing object
         # Passing n_entries + 1, for # of images, since we have title + n replies
 
-        Editor = VideoEditor(int(len(new_split_posts))-1, "keyword"+"_"+str(index+1))
+        Editor = VideoEditor(int(len(new_split_posts))-1, key + "_" + str(index+1))
         Editor.create_movie()
         print('movie created')
 
