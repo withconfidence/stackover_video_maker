@@ -74,11 +74,6 @@ class VideoEditor:
         )
         video_list_file = "{}video_list.txt".format(self.save_path)
 
-        with open(video_list_file, "w") as f:
-            f.write("file {}\n".format(self.intro_clip))
-            f.write("file {}\n".format(merged_clip_name))
-            f.write("file {}\n".format(self.outro_clip))
-
         ffmpeg_cmd = 'ffmpeg -i {} -i {} -i {} -s 1920*1080 -filter_complex "[0:v:0] [0:a:0] [1:v:0] [1:a:0] [2:v:0] [2:a:0] concat=unsafe=1:n=3:v=1:a=1 [v] [a]" -map "[v]" -map "[a]" -y {}'.format(self.intro_clip, merged_clip_name, self.outro_clip, final_vid_name)
         # cmd = 'ffmpeg -i \'{}\' -i \'{}\' -i \'{}\' -codec aac -filter_complex \"[0:v:0] [0:a:0] [1:v:0] [1:a:0] [2:v:0] [2:a:0] concat=n=3:v=1:a=1:safe=0 [v] [a]\" -map "[v]" -map "[a]" -y {}'.format(self.intro_clip, merged_clip_name, self.outro_clip, merged_clip_name)
         os.system(ffmpeg_cmd)

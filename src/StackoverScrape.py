@@ -47,7 +47,6 @@ def single_page_scraper(url):
 
 
 def single_page_question_answer(url):
-    print(f"{url=}")
     page=single_page_scraper(url).find_all("div", class_="s-prose js-post-body",itemprop="text")
     question = ""
     answer = []
@@ -89,11 +88,6 @@ def questions_answers(keyword, num_question):
         hrefs.append(href(soup))
     herfs_list=clean_empty_hrefs(hrefs)
     new_hrefs_list=add_prefix(herfs_list)
-    # for url in new_hrefs_list:
-    #     print("url= ", url)
-    # print(f"{len(new_hrefs_list)=}")
-
-    # new_hrefs_list = new_hrefs_list[:num_question]
 
     print("All hrefs are ready!")
     # print(f"{len(new_hrefs_list)=}")
@@ -160,7 +154,14 @@ def questions_answers(keyword, num_question):
 
 
 if __name__ == "__main__":
-    key = "python"
-    entries = 3
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('keyword', type=str, default="python", help='keyword to be searched')
+    parser.add_argument('entries', type=int, default=1, help='keyword to be searched')
+
+    args = parser.parse_args()
+    key = args.keyword
+    entries = args.entries
+
     result = questions_answers(key, entries)
 
