@@ -9,6 +9,7 @@
 
 
 #including the text to speech API: subject to change
+from distutils.log import error
 from gtts import gTTS
 
 import os
@@ -48,8 +49,6 @@ class TextToSpeech:
                 wd_len = len(wd)
                 if par_len + wd_len + 1 < 100:
                     par += " {}".format(wd)
-
-
                 else:
                     text_grp.append(par)
                     par = wd
@@ -60,7 +59,8 @@ class TextToSpeech:
                 # print(sub_text)
                 try:
                     gTTS(text=sub_text, lang='en').write_to_fp(fp)
-                except:
+                except Exception as err:
+                    print(repr(err))
                     pass
         
         title_file = f'{self.audio_path}title.mp3'

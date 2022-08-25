@@ -49,7 +49,7 @@ def single_page_scraper(url):
 def single_page_question_answer(url):
     page=single_page_scraper(url).find_all("div", class_="s-prose js-post-body",itemprop="text")
     question = ""
-    answer = []
+    answer = ""
     asked_username = ""
     answered_username = ""
     
@@ -57,19 +57,24 @@ def single_page_question_answer(url):
     user_element = single_page_scraper(url).find_all("div", class_="user-details",itemprop="author")
     user_names = [a.find("a").get_text() for a in user_element]
 
+    user_links = ["https://stackoverflow.com" + a.find("a")["href"] for a in user_element]
+    # print("user_links: ", user_links)
+
     for i, div_ele in enumerate(page):
         p_list = [p.get_text() for p in div_ele.findAll("p")]
         if i == 0:
             question = "\n".join(p_list)
             asked_username = user_names[i]
+            asked_userlink = user_links[i]
         elif i > 0:
             answer = "\n".join(p_list)
             answered_username = user_names[i]
+            answered_userlink = user_links[i]
             break
         if i == 2:
             break
 
-    return question,asked_username, answer, answered_username, q_title
+    return question,asked_username, asked_userlink, answer, answered_username, answered_userlink, q_title
 
 import itertools
 def questions_answers(keyword, num_question):
@@ -97,16 +102,20 @@ def questions_answers(keyword, num_question):
     answer_users = []
     urls = []
     titles = []
+    asked_users_link = []
+    answered_users_link = []
     
     for url in new_hrefs_list:
         try:
-            q, q_u, a, a_u, q_title=single_page_question_answer(url)
+            q, q_u, q_u_link, a, a_u, a_u_link, q_title=single_page_question_answer(url)
             print(q_title)
 
             quesitons.append(q.strip())
             answers.append(a.strip())
             asked_users.append(q_u.strip())
+            asked_users_link.append(q_u_link.strip())
             answer_users.append(a_u.strip())
+            answered_users_link.append(a_u_link.strip())
             urls.append(url)
             titles.append(q_title)
             print("question num:", len(quesitons), num_question)
@@ -117,20 +126,24 @@ def questions_answers(keyword, num_question):
             pass
     print("quesitons and answers are ready!")
 
-    
     new_answers=[]
     new_answer_users = []
+    new_answer_users_link = []
+
     key_list = []
     for i in range(len(answers)):
         try:
             ans = answers[i]
             user = answer_users[i]
+            user_link = answered_users_link[i]
             new_answers.append(ans)
             new_answer_users.append(user)
+            new_answer_users_link.append(user_link)
             key_list.append(keyword)
         except:
             new_answers.append(None)
             new_answer_users.append(None)
+            new_answer_users_link.append(None)
 
     print("All most done!")
     assert(len(urls) == len(quesitons) == len(asked_users) == len(new_answers) == len(new_answer_users) == len(titles))
@@ -141,13 +154,15 @@ def questions_answers(keyword, num_question):
             "keyword": key_list,
             "title": titles,
             "asked_user": asked_users,
+            "asked_user_link": asked_users_link,
             "question": quesitons,
             "answered_user": new_answer_users,
+            "answered_user_lnik": new_answer_users_link,
             "answer": new_answers
         }
     )
 
-    df.to_csv("list.csv", mode="w", index=True)
+    df.to_csv("new_list.csv", mode="w", index=True)
 
     print("csv file successfully created...")
 

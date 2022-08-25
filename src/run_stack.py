@@ -54,14 +54,15 @@ def main() -> int:
         # posts, authors = reddit_scraper.scrape_post()
 
         url = stack_data.url[index]
+        q_title = stack_data.title[index]
         asked_user = stack_data.asked_user[index]
         question = stack_data.question[index]
         answered_user = stack_data.answered_user[index]
         answer = stack_data.answer[index]
         key = stack_data.keyword[index]
 
-        posts = [question, answer]
-        authors = [asked_user, answered_user]
+        posts = [q_title, question, answer]
+        authors = [asked_user, asked_user, answered_user]
 
         new_split_posts = []
         new_split_authors = []

@@ -90,7 +90,7 @@ class ImageCreator:
         for i, word in enumerate(words):
             line_len = len(line)
             word_len = len(word)
-            if line_len + word_len + 1 > 80:
+            if line_len + word_len + 1 > 70:
                 lines.append(line.strip())
                 line = word
             else:
