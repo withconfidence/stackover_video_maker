@@ -61,7 +61,7 @@ def single_page_question_answer(url):
     # print("user_links: ", user_links)
 
     for i, div_ele in enumerate(page):
-        p_list = [p.get_text() for p in div_ele.findAll("p")]
+        p_list = [p.get_text() for p in div_ele.find_all(recursive=False)]
         if i == 0:
             question = "\n".join(p_list)
             asked_username = user_names[i]
@@ -162,7 +162,7 @@ def questions_answers(keyword, num_question):
         }
     )
 
-    df.to_csv("new_list.csv", mode="w", index=True)
+    df.to_csv("_list_.csv", mode="w", index=True)
 
     print("csv file successfully created...")
 

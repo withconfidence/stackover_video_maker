@@ -55,8 +55,9 @@ class TextToSpeech:
                 if i+1 == len(word_list):
                     text_grp.append(par)
             for sub_text in text_grp:
-                # print("length = ", len(sub_text))
+                print("length = ", len(sub_text))
                 # print(sub_text)
+
                 try:
                     gTTS(text=sub_text, lang='en').write_to_fp(fp)
                 except Exception as err:

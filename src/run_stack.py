@@ -61,6 +61,8 @@ def main() -> int:
         answer = stack_data.answer[index]
         key = stack_data.keyword[index]
 
+        print('{}: Creating Video...'.format(key + "_" + str(index+1)))
+
         posts = [q_title, question, answer]
         authors = [asked_user, asked_user, answered_user]
 
@@ -68,19 +70,24 @@ def main() -> int:
         new_split_authors = []
 
         for text, name in zip(posts, authors):
+            text = str(text)
+            text = "\n".join([line for line in text.split("\n") if line.strip() != ""])
+
             if len(text) < 500:
                 new_split_posts.append(text)
                 new_split_authors.append(name)
             else:
                 text_grp = []
-                word_list = text.split(" ")
+                sent_list = text.split("\n")
                 par = ""
-                for i, wd in enumerate(word_list):
+                for i, wd in enumerate(sent_list):
                     par_len = len(par)
                     wd_len = len(wd)
-                    if par_len + wd_len + 1 < 500:
-                        par += " {}".format(wd)
-                        if i+1 == len(word_list):
+                    sent_num = len(par.split("\n"))
+
+                    if par_len + wd_len + 1 < 500 and sent_num <= 10:
+                        par += "\n{}".format(wd)
+                        if i+1 == len(sent_list):
                             text_grp.append(par)
                     else:
                         text_grp.append(par)
@@ -88,10 +95,11 @@ def main() -> int:
                 num_split = len(text_grp)
                 new_split_posts += text_grp
                 new_split_authors += [name for _ in range(num_split)]
+        
 
         # Text to speech 
-        tts = TextToSpeech()   # Creating tts class
-        tts.create_tts(new_split_posts)  # Creating all tts mp3 files for video 
+        # tts = TextToSpeech()   # Creating tts class
+        # tts.create_tts(new_split_posts)  # Creating all tts mp3 files for video 
 
         # Image Creation
         # Creating image for title 
@@ -106,8 +114,9 @@ def main() -> int:
         # Passing n_entries + 1, for # of images, since we have title + n replies
 
         Editor = VideoEditor(int(len(new_split_posts))-1, key + "_" + str(index+1))
+
         Editor.create_movie()
-        print('movie created')
+        print('\t{}: video created'.format(key + "_" + str(index+1)))
 
     return 0
 

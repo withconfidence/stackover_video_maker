@@ -55,6 +55,7 @@ class ImageCreator:
 
         for line in ImageCreator.split_string(text, 10):
             text_dimensions = ImageCreator.get_text_dimensions(line, font)
+
             x = (image_width - text_dimensions[0]) / 2
             
             draw.text((x, y),line,font=font,fill=(255,255,255))
@@ -81,23 +82,43 @@ class ImageCreator:
 
         ex: split_string('hello world hello world', 2)
         => ['hello world', 'hello world']'''
-        words = text.split() #splits words into list: eg: 'hello world' -> ['hello', 'world']
+        sentences = [line for line in text.split("\n") if line.strip() != ""] #splits words into list: eg: 'hello world' -> ['hello', 'world']
         new_words = []
 
         lines = []
-        line = ''
+        limit_length = 65
 
-        for i, word in enumerate(words):
-            line_len = len(line)
-            word_len = len(word)
-            if line_len + word_len + 1 > 70:
-                lines.append(line.strip())
-                line = word
+        for i, sent in enumerate(sentences):
+            sent_len = len(sent)
+            if sent_len < limit_length:
+                lines.append(sent)
             else:
-                line += " " + word
+                # split_lines = []
+                word_list = sent.split()
 
-            if i+1 == len(words):
-                lines.append(line.strip())
+                line = ' '
+                for j, word in enumerate(word_list):
+                    line_len = len(line)
+                    word_len = len(word)
 
+                    if line_len + word_len + 1 > limit_length:
+                        lines.append(line)
+                        if word_len > limit_length:
+                            print("long word: ", word)
+                            split_num = int(word_len/ limit_length) + 1
+                            char_list = list(word)
+                            for k in range(split_num):
+                                section = "".join(char_list[k*limit_length:min(k*limit_length+limit_length, word_len)])
+                                lines.append(section)
+                            line = " "
+                        else:
+                            line = word
+                    else:
+                        line += " " + word
+
+                    if j+1 == len(word_list):
+                        lines.append(line)
+        # for sss in lines:
+        #     print("length lines: ", len(sss), sss)
         return lines
 
