@@ -12,7 +12,18 @@ After then, please install `ffmpeg`.
 
 First, make the list csv file.
 
-`python StackoverScrape.py keyword 3`
+```
+cd src
+python  StackoverScrape.py keyword 3
+```
+    usage: StackoverScrape.py [-h] keyword entries
+
+    positional arguments:
+      keyword     keyword to search
+      entries     ents number to search
+
+    optional arguments:
+      -h, --help  show this help message and exit
 
 After then, run the below command
 
@@ -20,11 +31,10 @@ After then, run the below command
 cd src
 python run_stack.py list.csv
 ```
-    usage: run_stack.py [-h] keyword entries
+    usage: run_stack.py [-h] file
 
     positional arguments:
-      keyword     keyword to search
-      entries     ents number to search
+      file        target csv file
 
     optional arguments:
       -h, --help  show this help message and exit
